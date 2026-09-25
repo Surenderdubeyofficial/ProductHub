@@ -16,16 +16,16 @@ export default function Pagination({
   const pageNumbers = generatePageNumbers(currentPage, totalPages);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
-      {/* Showing range text */}
-      <div className="text-xs sm:text-sm text-slate-500 font-medium order-2 sm:order-1">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-3 px-1 text-xs">
+      {/* Range Summary Text */}
+      <div className="text-slate-500 font-medium order-2 sm:order-1">
         {showingText}
       </div>
 
-      {/* Controls: Page Numbers and Limit Selector */}
+      {/* Controls: Rows per page + Page Navigation */}
       <div className="flex flex-wrap items-center gap-3 order-1 sm:order-2">
-        {/* Page Size Selector */}
-        <div className="flex items-center space-x-2 text-xs text-slate-600">
+        {/* Rows per page selector */}
+        <div className="flex items-center space-x-1.5 text-slate-500">
           <label htmlFor="limit-select" className="font-medium whitespace-nowrap">
             Rows per page:
           </label>
@@ -34,7 +34,7 @@ export default function Pagination({
             value={limit}
             disabled={disabled}
             onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+            className="h-8 bg-white border border-slate-200 rounded-md px-2 text-xs font-medium text-slate-700 shadow-xs hover:border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-950 disabled:opacity-50"
           >
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -42,30 +42,30 @@ export default function Pagination({
           </select>
         </div>
 
-        {/* Page Navigation Buttons */}
+        {/* Page Buttons Nav */}
         <nav
-          aria-label="Pagination Navigation"
-          className="inline-flex items-center space-x-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm"
+          aria-label="Pagination"
+          className="inline-flex items-center space-x-1 bg-white border border-slate-200 rounded-lg p-0.5 shadow-xs"
         >
           {/* Previous Button */}
           <button
             type="button"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1 || disabled}
-            aria-label="Go to previous page"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+            aria-label="Previous page"
+            className="h-7 w-7 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
-          {/* Page Number Buttons */}
-          <div className="flex items-center space-x-1">
+          {/* Page Numbers */}
+          <div className="flex items-center space-x-0.5">
             {pageNumbers.map((num, idx) => {
               if (num === '...') {
                 return (
                   <span
                     key={`ellipsis-${idx}`}
-                    className="px-2 py-1 text-xs text-slate-400 select-none"
+                    className="px-1.5 py-1 text-slate-400 select-none text-[11px]"
                   >
                     ...
                   </span>
@@ -80,9 +80,9 @@ export default function Pagination({
                   onClick={() => onPageChange(num)}
                   disabled={disabled}
                   aria-current={isCurrent ? 'page' : undefined}
-                  className={`min-w-[32px] h-8 px-2 text-xs font-semibold rounded-lg transition-all ${
+                  className={`min-w-[28px] h-7 px-1.5 text-xs font-medium rounded-md transition-colors ${
                     isCurrent
-                      ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   } disabled:opacity-50`}
                 >
@@ -97,10 +97,10 @@ export default function Pagination({
             type="button"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages || disabled}
-            aria-label="Go to next page"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
+            aria-label="Next page"
+            className="h-7 w-7 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </nav>
       </div>

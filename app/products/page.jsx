@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-import { Plus, Sparkles, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import productService from '@/services/productService';
 import { sanitizeQueryParams, calculatePagination } from '@/utils/pagination';
@@ -50,9 +50,8 @@ function ProductsContent() {
   const [error, setError] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Artificial delay toggle for testing race conditions (&delay=2000)
-  const hasDelayParam = searchParams.get('delay') === '2000';
-  const [simulateDelay, setSimulateDelay] = useState(hasDelayParam);
+  // Artificial delay param (&delay=2000)
+  const isDelayActive = searchParams.get('delay') === '2000';
 
   // Delete modal state
   const [deleteModalState, setDeleteModalState] = useState({
@@ -113,7 +112,7 @@ function ProductsContent() {
         params.set('sortBy', merged.sortBy);
         params.set('order', merged.order || 'asc');
       }
-      if (simulateDelay) {
+      if (isDelayActive) {
         params.set('delay', '2000');
       }
 
@@ -121,7 +120,7 @@ function ProductsContent() {
       const targetUrl = queryString ? `${pathname}?${queryString}` : pathname;
       router.push(targetUrl, { scroll: false });
     },
-    [urlPage, urlLimit, urlSearch, urlCategory, urlSortBy, urlOrder, pathname, router, simulateDelay]
+    [urlPage, urlLimit, urlSearch, urlCategory, urlSortBy, urlOrder, pathname, router, isDelayActive]
   );
 
   /**
@@ -129,7 +128,6 @@ function ProductsContent() {
    */
   const fetchProductList = useCallback(
     async (isRetry = false) => {
-      // Abort previous in-flight request to prevent race conditions
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -145,13 +143,12 @@ function ProductsContent() {
       setError(null);
 
       const skip = (urlPage - 1) * urlLimit;
-      const delay = simulateDelay ? 2000 : undefined;
+      const delay = isDelayActive ? 2000 : undefined;
 
       try {
         let result;
 
         if (urlSearch) {
-          // Search takes precedence
           result = await productService.searchProducts({
             q: urlSearch,
             limit: urlLimit,
@@ -160,7 +157,6 @@ function ProductsContent() {
             signal: controller.signal,
           });
         } else if (urlCategory) {
-          // Filter by category
           result = await productService.getProductsByCategory({
             category: urlCategory,
             limit: urlLimit,
@@ -171,7 +167,6 @@ function ProductsContent() {
             signal: controller.signal,
           });
         } else {
-          // Standard paginated listing
           result = await productService.getProducts({
             limit: urlLimit,
             skip,
@@ -185,13 +180,12 @@ function ProductsContent() {
         setProducts(result.products || []);
         setTotal(result.total || 0);
 
-        // Clamping check: if requested page is out of bounds (e.g. ?page=999)
+        // Clamping check: if requested page is out of bounds
         const totalPages = Math.max(1, Math.ceil((result.total || 0) / urlLimit));
         if (urlPage > totalPages && result.total > 0) {
           updateUrl({ page: totalPages });
         }
       } catch (err) {
-        // Silently ignore aborted requests from previous keystrokes
         if (axios.isCancel(err) || err.name === 'CanceledError') {
           return;
         }
@@ -203,7 +197,7 @@ function ProductsContent() {
         setIsRetrying(false);
       }
     },
-    [urlPage, urlLimit, urlSearch, urlCategory, urlSortBy, urlOrder, simulateDelay, updateUrl]
+    [urlPage, urlLimit, urlSearch, urlCategory, urlSortBy, urlOrder, isDelayActive, updateUrl]
   );
 
   // Trigger debounced search URL sync
@@ -211,8 +205,8 @@ function ProductsContent() {
     if (debouncedSearch !== urlSearch) {
       updateUrl({
         search: debouncedSearch,
-        category: '', // Clear category when search changes
-        page: 1,      // Reset to page 1
+        category: '',
+        page: 1,
       });
     }
   }, [debouncedSearch, urlSearch, updateUrl]);
@@ -222,43 +216,26 @@ function ProductsContent() {
     fetchProductList();
 
     return () => {
-      // Clean up effect on unmount
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
   }, [fetchProductList]);
 
-  // Filter & Pagination Handlers
-  const handleSearchChange = (val) => {
-    setSearchInput(val);
-  };
-
+  // Handlers
+  const handleSearchChange = (val) => setSearchInput(val);
   const handleClearSearch = () => {
     setSearchInput('');
     updateUrl({ search: '', page: 1 });
   };
-
-  const handleCategoryChange = (cat) => {
-    updateUrl({ category: cat, search: '', page: 1 });
-  };
-
-  const handleSortChange = (sortByField, sortOrder) => {
-    updateUrl({ sortBy: sortByField, order: sortOrder, page: 1 });
-  };
-
+  const handleCategoryChange = (cat) => updateUrl({ category: cat, search: '', page: 1 });
+  const handleSortChange = (sortByField, sortOrder) => updateUrl({ sortBy: sortByField, order: sortOrder, page: 1 });
   const handleResetFilters = () => {
     setSearchInput('');
     updateUrl({ search: '', category: '', sortBy: '', order: 'asc', page: 1 });
   };
-
-  const handlePageChange = (newPage) => {
-    updateUrl({ page: newPage });
-  };
-
-  const handleLimitChange = (newLimit) => {
-    updateUrl({ limit: newLimit, page: 1 });
-  };
+  const handlePageChange = (newPage) => updateUrl({ page: newPage });
+  const handleLimitChange = (newLimit) => updateUrl({ limit: newLimit, page: 1 });
 
   // Delete Handlers
   const handleOpenDelete = (product) => {
@@ -277,26 +254,24 @@ function ProductsContent() {
       setDeleteModalState((prev) => ({ ...prev, isDeleting: true }));
       await productService.deleteProduct(deleteModalState.product.id);
 
-      // Immediate UI update
       setProducts((prev) => prev.filter((p) => p.id !== deleteModalState.product.id));
       setTotal((prev) => Math.max(0, prev - 1));
 
       showToast({
         type: 'success',
-        message: `Product "${deleteModalState.product.title}" successfully deleted.`,
+        message: `Product "${deleteModalState.product.title}" deleted.`,
       });
 
       handleCloseDelete();
     } catch (err) {
       showToast({
         type: 'error',
-        message: err.friendlyMessage || 'Failed to delete product. Please try again.',
+        message: err.friendlyMessage || 'Failed to delete product.',
       });
       setDeleteModalState((prev) => ({ ...prev, isDeleting: false }));
     }
   };
 
-  // Calculate pagination summary
   const paginationData = calculatePagination({
     total,
     page: urlPage,
@@ -304,56 +279,29 @@ function ProductsContent() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-200/60">
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Product Inventory
-            </h1>
-            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-              {total} Total
-            </span>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500">
-            Browse, filter, and manage your e-commerce product catalog.
+          <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+            Products
+          </h1>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Manage your product inventory and catalog.
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center space-x-3">
-          {/* Race Condition Artificial Delay Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              const nextVal = !simulateDelay;
-              setSimulateDelay(nextVal);
-              updateUrl({ page: 1 });
-            }}
-            title="Simulate 2000ms network delay for race condition testing"
-            className={`inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              simulateDelay
-                ? 'bg-amber-100 border-amber-300 text-amber-900 shadow-inner'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Clock className={`w-3.5 h-3.5 ${simulateDelay ? 'text-amber-700 animate-spin' : 'text-slate-400'}`} />
-            <span>2s Delay: {simulateDelay ? 'ON' : 'OFF'}</span>
-          </button>
-
-          {/* Add Product Button */}
-          <Link
-            href="/products/new"
-            className="inline-flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-indigo-600/20 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Product</span>
-          </Link>
-        </div>
+        {/* Primary CTA */}
+        <Link
+          href="/products/new"
+          className="inline-flex items-center space-x-1.5 h-9 px-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium shadow-xs transition-colors focus:outline-none focus:ring-1 focus:ring-slate-950"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Product</span>
+        </Link>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* Product Toolbar */}
       <ProductFilters
         searchTerm={searchInput}
         onSearchChange={handleSearchChange}
@@ -368,7 +316,7 @@ function ProductsContent() {
         isLoadingCategories={isLoadingCategories}
       />
 
-      {/* Content Rendering: Loading, Error, Empty, or Table */}
+      {/* Content Rendering */}
       {isLoading ? (
         <>
           <div className="hidden md:block">
@@ -380,7 +328,7 @@ function ProductsContent() {
         </>
       ) : error ? (
         <ErrorState
-          title="Could not load products"
+          title="Failed to load products"
           message={error}
           onRetry={() => fetchProductList(true)}
           isRetrying={isRetrying}
@@ -388,9 +336,9 @@ function ProductsContent() {
       ) : products.length === 0 ? (
         <EmptyState
           title="No products found"
-          description="Try modifying your search query or removing filters to view items."
+          description="Try changing your search query or clearing filters."
           onAction={handleResetFilters}
-          actionLabel="Clear Filters"
+          actionLabel="Clear filters"
         />
       ) : (
         <>
@@ -400,7 +348,7 @@ function ProductsContent() {
           </div>
 
           {/* Mobile Card Grid View */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -410,8 +358,8 @@ function ProductsContent() {
             ))}
           </div>
 
-          {/* Manual Pagination Controls */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 px-4 shadow-sm">
+          {/* Pagination Controls */}
+          <div className="bg-white rounded-xl border border-slate-200/80 px-3 shadow-xs">
             <Pagination
               currentPage={paginationData.currentPage}
               totalPages={paginationData.totalPages}
@@ -424,7 +372,7 @@ function ProductsContent() {
         </>
       )}
 
-      {/* Confirmation Modal for Deletion */}
+      {/* Delete Confirmation Modal */}
       <DeleteModal
         isOpen={deleteModalState.isOpen}
         product={deleteModalState.product}
@@ -440,7 +388,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-8">
+        <div className="p-6">
           <TableSkeleton rows={8} />
         </div>
       }

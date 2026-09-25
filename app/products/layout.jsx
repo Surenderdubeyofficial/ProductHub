@@ -10,15 +10,15 @@ export default function ProductsLayout({ children }) {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        {/* Desktop Fixed Sidebar / Mobile Drawer */}
+      <div className="min-h-screen bg-slate-50/60 flex flex-col">
+        {/* Desktop Fixed Sidebar (w-60) & Mobile Drawer */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main Content Area */}
-        <div className="lg:pl-64 flex flex-col flex-1 min-w-0">
+        <div className="lg:pl-60 flex flex-col flex-1 min-w-0">
           <Navbar onOpenSidebar={() => setSidebarOpen(true)} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto w-full">
+            <div className="max-w-6xl mx-auto w-full">
               {children}
             </div>
           </main>

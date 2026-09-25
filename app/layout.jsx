@@ -3,14 +3,14 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 
 export const metadata = {
-  title: 'NexusAdmin | Product Management Dashboard',
-  description: 'Production-quality SaaS Product Admin Dashboard built with Next.js and JavaScript',
+  title: 'ProductHub — Product Management System',
+  description: 'Production-grade product administration dashboard built with Next.js and JavaScript',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <html lang="en" className="h-full bg-slate-50 antialiased">
+      <body className="min-h-full bg-slate-50 text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
         <AuthProvider>
           <ToastProvider>
             {children}

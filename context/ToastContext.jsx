@@ -13,7 +13,7 @@ export function ToastProvider({ children }) {
   }, []);
 
   const showToast = useCallback(
-    ({ type = 'success', message, duration = 4000 }) => {
+    ({ type = 'success', message, duration = 3500 }) => {
       const id = Date.now() + Math.random().toString(36).substring(2, 9);
       setToasts((prev) => [...prev, { id, type, message }]);
 
@@ -29,10 +29,10 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Toast container */}
+      {/* Toast container positioned top-right on desktop, top-center on mobile */}
       <div
         aria-live="polite"
-        className="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full"
+        className="fixed top-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full sm:w-auto"
       >
         {toasts.map((toast) => {
           const isSuccess = toast.type === 'success';
@@ -41,27 +41,21 @@ export function ToastProvider({ children }) {
           return (
             <div
               key={toast.id}
-              className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-lg border text-sm transition-all transform animate-slideUp ${
-                isSuccess
-                  ? 'bg-emerald-950/90 border-emerald-700/50 text-emerald-200'
-                  : isError
-                  ? 'bg-rose-950/90 border-rose-700/50 text-rose-200'
-                  : 'bg-slate-900/90 border-slate-700 text-slate-200'
-              }`}
+              className="pointer-events-auto flex items-center justify-between min-w-[280px] max-w-md p-3.5 bg-white border border-slate-200 rounded-lg shadow-lg text-sm text-slate-800 animate-slideDown"
             >
-              <div className="flex items-center space-x-3">
-                {isSuccess && <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />}
-                {isError && <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />}
-                {!isSuccess && !isError && <Info className="w-5 h-5 text-indigo-400 flex-shrink-0" />}
-                <p className="font-medium text-xs sm:text-sm">{toast.message}</p>
+              <div className="flex items-center space-x-2.5">
+                {isSuccess && <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                {isError && <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />}
+                {!isSuccess && !isError && <Info className="w-4 h-4 text-indigo-600 flex-shrink-0" />}
+                <p className="text-xs sm:text-sm font-medium leading-tight">{toast.message}</p>
               </div>
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
-                className="ml-3 p-1 rounded-md hover:bg-white/10 transition-colors text-current opacity-70 hover:opacity-100"
-                aria-label="Close notification"
+                className="ml-3 p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Dismiss notification"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
