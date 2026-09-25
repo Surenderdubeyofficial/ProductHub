@@ -43,9 +43,13 @@ function NavbarContent({ onOpenSidebar }) {
         </button>
 
         <div className="flex items-center space-x-1.5 text-xs text-slate-500 font-medium">
-          <span className="text-slate-400">Inventory</span>
+          <span className="text-slate-400">
+            {pathname.startsWith('/settings') ? 'System' : pathname.startsWith('/dashboard') ? 'Overview' : 'Inventory'}
+          </span>
           <span className="text-slate-300">/</span>
-          <span className="text-slate-900 font-semibold">Products</span>
+          <span className="text-slate-900 font-semibold">
+            {pathname.startsWith('/settings') ? 'Settings' : pathname.startsWith('/dashboard') ? 'Dashboard' : 'Products'}
+          </span>
         </div>
       </div>
 

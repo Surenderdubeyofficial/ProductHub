@@ -20,24 +20,22 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const navigation = [
     {
+      name: 'Dashboard',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      current: pathname === '/dashboard',
+    },
+    {
       name: 'Products',
       href: '/products',
       icon: Package,
       current: pathname.startsWith('/products'),
     },
     {
-      name: 'Dashboard',
-      href: '#',
-      icon: LayoutDashboard,
-      current: false,
-      badge: 'Coming soon',
-    },
-    {
       name: 'Settings',
-      href: '#',
+      href: '/settings',
       icon: Settings,
-      current: false,
-      badge: 'Coming soon',
+      current: pathname === '/settings',
     },
   ];
 
