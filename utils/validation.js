@@ -24,6 +24,39 @@ export function validateLoginForm({ username, password }) {
   };
 }
 
+export function validateSignupForm({ fullName, email, username, password }) {
+  const errors = {};
+
+  if (!fullName || !fullName.trim()) {
+    errors.fullName = 'Full name is required';
+  } else if (fullName.trim().length < 2) {
+    errors.fullName = 'Name must be at least 2 characters';
+  }
+
+  if (!email || !email.trim()) {
+    errors.email = 'Email address is required';
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  if (!username || !username.trim()) {
+    errors.username = 'Username is required';
+  } else if (username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters';
+  }
+
+  if (!password) {
+    errors.password = 'Password is required';
+  } else if (password.length < 6) {
+    errors.password = 'Password must be at least 6 characters';
+  }
+
+  return {
+    errors,
+    isValid: Object.keys(errors).length === 0,
+  };
+}
+
 export function validateProductForm(data) {
   const errors = {};
 

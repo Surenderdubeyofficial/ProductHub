@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { validateLoginForm } from '@/utils/validation';
 import { Eye, EyeOff, Lock, User, AlertCircle, Loader2, Package } from 'lucide-react';
@@ -214,6 +215,17 @@ export default function LoginPage() {
             >
               Fill demo credentials
             </button>
+          </div>
+
+          {/* Link to Signup */}
+          <div className="mt-3 text-center text-xs text-slate-500">
+            <span>Don&apos;t have an account? </span>
+            <Link
+              href="/signup"
+              className="text-slate-900 font-semibold hover:underline transition-colors"
+            >
+              Sign up
+            </Link>
           </div>
         </div>
       </div>
