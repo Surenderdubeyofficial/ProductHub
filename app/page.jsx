@@ -1,27 +1,11 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import Loader from '@/components/common/Loader';
-
+/**
+ * Root Route Redirector
+ * Directs visitors to /login by default on the server level.
+ * If the user is already authenticated, the client-side login page
+ * will immediately transition them into /products.
+ */
 export default function RootPage() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace('/products');
-      } else {
-        router.replace('/login');
-      }
-    }
-  }, [isLoading, isAuthenticated, router]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <Loader size="lg" text="Loading NexusAdmin..." />
-    </div>
-  );
+  redirect('/login');
 }
